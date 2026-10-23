@@ -1,36 +1,4 @@
-"""Gemini API wrapper using the official google-genai SDK."""
-from __future__ import annotations
-
-import json
-import os
-import re
-import time
-
-from .config import DEFAULT_MODEL, get_api_key
-
-
-class GeminiServiceError(RuntimeError):
-    """A safe, user-readable Gemini API error."""
-
-
-class GeminiService:
-    def __init__(self, api_key: str | None = None, model: str = DEFAULT_MODEL, client=None, max_retries: int = 2):
-        self.api_key = api_key
-        self.model = model
-        self.client = client
-        self.max_retries = max(0, int(max_retries))
-
-    def _client(self):
-        if self.client is not None:
-            return self.client
-        key = self.api_key or get_api_key()
-        if not key:
-            raise GeminiServiceError(
-                "Gemini API key is missing. Add GEMINI_API_KEY to Streamlit Secrets "
-                "or your local environment."
-            )
-        try:
-            from google import genai
+from google import genai
             self.client = genai.Client(api_key=key)
             return self.client
         except Exception as exc:
@@ -158,4 +126,3 @@ class GeminiService:
             except json.JSONDecodeError as exc:
                 raise GeminiServiceError(
                     "Gemini returned invalid JSON after one repair attempt. Please retry."
-                ) from exc
