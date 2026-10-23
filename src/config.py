@@ -4,8 +4,8 @@ import os
 
 DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 MAX_UPLOAD_MB = int(os.getenv("LECTUREMATE_MAX_UPLOAD_MB", "25"))
-CHUNK_CHARS = int(os.getenv("LECTUREMATE_CHUNK_CHARS", "18000"))
-CHUNK_OVERLAP_CHARS = int(os.getenv("LECTUREMATE_CHUNK_OVERLAP_CHARS", "800"))
+CHUNK_CHARS = int(os.getenv("LECTUREMATE_CHUNK_CHARS", "9000"))
+CHUNK_OVERLAP_CHARS = int(os.getenv("LECTUREMATE_CHUNK_OVERLAP_CHARS", "300"))
 
 
 def get_api_key(secrets_obj=None) -> str | None:
