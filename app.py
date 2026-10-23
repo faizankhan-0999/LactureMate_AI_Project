@@ -2,7 +2,7 @@ from __future__ import annotations
 import os
 import logging
 import streamlit as st
-from src.config import MAX_UPLOAD_MB, DEFAULT_MODEL, get_api_key
+from src.config import MAX_UPLOAD_MB, DEFAULT_MODEL, get_api_key, get_model
 from src.pdf_processor import extract_pdf
 from src.lecture_chunker import chunk_pages
 from src.source_analyzer import analyze_chunks
@@ -39,7 +39,7 @@ with st.sidebar:
     want_flashcards = st.toggle("Generate flashcards", value=True)
     want_revision = st.toggle("Generate revision sheet", value=True)
     st.divider()
-    st.caption(f"Model setting: `{DEFAULT_MODEL}`")
+    st.caption(f"Model setting: `{get_model(st.secrets)}`")
 
 if "lecture_result" not in st.session_state: st.session_state.lecture_result = None
 if "materials" not in st.session_state: st.session_state.materials = {}
@@ -87,7 +87,7 @@ if result:
     st.caption(f"{len(chunks)} content chunk(s) prepared. Original page references are retained in the source text.")
     api_key = get_api_key(st.secrets)
     if not api_key: st.warning("Gemini API key is not configured yet. Add `GEMINI_API_KEY` in Streamlit Secrets or your local environment to generate materials.")
-    service = GeminiService(api_key=api_key) if api_key else None
+    service = GeminiService(api_key=api_key, model=get_model(st.secrets)) if api_key else None
     source_text = result.full_text
     source_pages = [p.page_number for p in result.pages if p.text.strip()]
     tabs = st.tabs(["Overview", "Study Notes", "Exam Questions", "MCQs", "Quiz Practice", "Flashcards", "AI Study Chat", "Downloads"])

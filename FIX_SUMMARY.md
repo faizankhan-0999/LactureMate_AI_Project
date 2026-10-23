@@ -28,3 +28,11 @@ The previous `src/gemini_service.py` retried most exceptions without distinguish
 - Added regression tests for diagnostic visibility and split/retry behavior.
 - Validation: `python -m compileall -q app.py src tests` passed; `python -m pytest -q` passed (37 tests).
 - Live Gemini API behavior remains unverified in this environment because no live API credentials/network are available. If the next run shows `authentication`, `permission`, `quota`, or `model_unavailable`, fix that specific API/account configuration; code cannot bypass those provider-side restrictions.
+
+
+## Follow-up fix: model Secret was ignored
+
+- Confirmed `src/config.py` originally read `GEMINI_MODEL` only from the process environment. Streamlit Cloud Secrets do not automatically become environment variables, so adding `GEMINI_MODEL` to the Secrets text area would not change the model used by the app.
+- Added `get_model(st.secrets)` and passed its value into `GeminiService`; the sidebar now displays the actual configured model.
+- Changed the fallback model to the current stable `gemini-3.8-flash` model listed in Google's official Gemini API model guide as of October 2026.
+- Added tests for Streamlit Secret overrides and default behavior. Live access still depends on the user's Google API key/project and must be tested on the deployed app.

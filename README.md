@@ -72,11 +72,12 @@ lecturemate-ai/
 7. Open the local URL printed by Streamlit, normally `http://localhost:8501`.
 
 ## Gemini configuration
-The default model is `gemini-2.5-flash`, configurable with the `GEMINI_MODEL` environment variable. Model identifiers and access can change; if the model is unavailable for your account, set `GEMINI_MODEL` to a currently supported model. For local development, set `GEMINI_API_KEY`. For deployment, use Streamlit Community Cloud Secrets.
+The default model is `gemini-3.8-flash`. The app reads `GEMINI_MODEL` from Streamlit Secrets first, then the environment. Model access can depend on Google AI Studio project and account settings. For local development, set `GEMINI_API_KEY`. For deployment, use Streamlit Community Cloud Secrets.
 
 Example `.streamlit/secrets.toml` (local only; do not commit it):
 ```toml
 GEMINI_API_KEY = "your-real-key-goes-here"
+GEMINI_MODEL = "gemini-3.8-flash"
 ```
 
 ## Run tests
