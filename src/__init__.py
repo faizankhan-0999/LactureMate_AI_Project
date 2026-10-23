@@ -1,0 +1,1 @@
+"""LectureMate AI application package."""
