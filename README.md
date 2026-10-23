@@ -72,7 +72,7 @@ lecturemate-ai/
 7. Open the local URL printed by Streamlit, normally `http://localhost:8501`.
 
 ## Gemini configuration
-The default model is `gemini-flash-latest`, configurable with the `GEMINI_MODEL` environment variable. Model identifiers and access can change; if the model is unavailable for your account, set `GEMINI_MODEL` to a currently supported model. For local development, set `GEMINI_API_KEY`. For deployment, use Streamlit Community Cloud Secrets.
+The default model is `gemini-2.5-flash`, configurable with the `GEMINI_MODEL` environment variable. Model identifiers and access can change; if the model is unavailable for your account, set `GEMINI_MODEL` to a currently supported model. For local development, set `GEMINI_API_KEY`. For deployment, use Streamlit Community Cloud Secrets.
 
 Example `.streamlit/secrets.toml` (local only; do not commit it):
 ```toml
@@ -125,3 +125,12 @@ Uploaded PDFs are processed in memory by the app and are not intentionally saved
 
 ## Testing results
 See the delivery message for the exact commands executed and actual outcomes in the build environment. Automated tests mock external Gemini calls and do not require a live API key.
+
+## Gemini MCQ troubleshooting
+- **Authentication error:** check that the `GEMINI_API_KEY` secret is correct and active. Never paste the key into chat, screenshots, logs, or source code.
+- **Model unavailable / permission denied:** verify `GEMINI_MODEL` and that the API key's Google project has access to that model. The default is `gemini-2.5-flash`; it is not silently replaced if unavailable.
+- **Quota exhausted:** check the API project's quota and billing/usage status. Waiting will not resolve a hard exhausted quota until quota is available again.
+- **Rate limit or temporary service error:** wait briefly and retry. Only transient errors are retried automatically.
+- **Invalid request:** check the server logs for the diagnostic category, HTTP status, and sanitized error detail. The app does not log lecture prompts or API keys intentionally.
+- **Malformed MCQ output:** the app makes one bounded JSON repair attempt and one bounded schema-correction attempt. It displays an error rather than showing invalid questions.
+- The extracted lecture stays in the current Streamlit session when generation fails, so a retry should not require another upload unless the page/session has been reset.

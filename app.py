@@ -1,5 +1,6 @@
 from __future__ import annotations
 import os
+import logging
 import streamlit as st
 from src.config import MAX_UPLOAD_MB, DEFAULT_MODEL, get_api_key
 from src.pdf_processor import extract_pdf
@@ -11,6 +12,8 @@ from src.question_generator import generate_mcqs, generate_exam_questions, Valid
 from src.flashcard_generator import generate_flashcards, generate_revision_sheet
 from src.quiz_engine import score_quiz, restart_quiz_state
 from src.export_service import notes_to_markdown, questions_to_markdown, mcqs_to_markdown, flashcards_to_markdown
+
+logger = logging.getLogger(__name__)
 
 st.set_page_config(page_title="LectureMate AI", page_icon="📚", layout="wide")
 st.markdown("""
@@ -146,8 +149,24 @@ if result:
     with tabs[3]:
         st.markdown("### Multiple-choice questions")
         if st.button("Generate / regenerate MCQs", disabled=service is None, key="gen_mcqs"):
-            try: st.session_state.materials["mcqs"] = generate_mcqs(service, st.session_state.materials.get("analysis_context", source_text), mcq_count, source_pages); st.session_state.quiz_state = restart_quiz_state()
-            except Exception as exc: st.error(str(exc))
+            try:
+                with st.spinner(f"Generating and validating {mcq_count} lecture-based MCQs…"):
+                    generated_mcqs = generate_mcqs(
+                        service,
+                        st.session_state.materials.get("analysis_context", source_text),
+                        mcq_count,
+                        source_pages,
+                    )
+                # Replace existing questions only after a complete validated response.
+                st.session_state.materials["mcqs"] = generated_mcqs
+                st.session_state.quiz_state = restart_quiz_state()
+                st.success(f"Generated {len(generated_mcqs)} validated MCQs.")
+            except (GeminiServiceError, ValidationError, ValueError) as exc:
+                st.error(str(exc))
+                st.caption("Your extracted lecture is still loaded. Correct the reported issue or wait briefly, then click Generate / regenerate MCQs again.")
+            except Exception as exc:
+                logger.exception("Unexpected MCQ workflow failure; lecture content and API credentials are not included intentionally.")
+                st.error("An unexpected application error interrupted MCQ generation. Your extracted lecture remains loaded; check the server logs for the traceback, then retry.")
         mcqs = st.session_state.materials.get("mcqs", [])
         if mcqs:
             for i,q in enumerate(mcqs,1):
