@@ -24,3 +24,25 @@ def test_auth_failure():
 def test_quota_failure():
     service=GeminiService(client=Client([RuntimeError("429 quota exceeded")]),max_retries=0)
     with pytest.raises(GeminiServiceError,match="quota"): service.generate("x")
+
+
+
+def test_model_not_found_has_actionable_message():
+    service = GeminiService(client=Client([RuntimeError("404 NOT_FOUND model not found")]), max_retries=2)
+    with pytest.raises(GeminiServiceError, match="model.*unavailable"):
+        service.generate("x")
+    assert service.client.models.calls == 1
+
+
+def test_unknown_error_includes_diagnostic():
+    service = GeminiService(client=Client([RuntimeError("unexpected request parameter foo")]), max_retries=2)
+    with pytest.raises(GeminiServiceError, match="unexpected request parameter foo"):
+        service.generate("x")
+    assert service.client.models.calls == 1
+
+
+def test_transient_error_retries_then_succeeds(monkeypatch):
+    monkeypatch.setattr("src.gemini_service.time.sleep", lambda _: None)
+    service = GeminiService(client=Client([RuntimeError("503 service unavailable"), "ok"]), max_retries=1)
+    assert service.generate("x") == "ok"
+    assert service.client.models.calls == 2
